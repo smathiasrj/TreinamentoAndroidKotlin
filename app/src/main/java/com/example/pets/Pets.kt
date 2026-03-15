@@ -1,5 +1,5 @@
 package com.example.pets
-// REQUISITO 8 e 13: Interação via Scanner
+// REQUISITO : Interação via Scanner
 // Importamos a classe Scanner para conseguir ler o que o usuário digita no terminal.
 import java.util.Scanner
 
