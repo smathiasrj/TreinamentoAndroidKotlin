@@ -59,6 +59,7 @@ fun ContactScreen(viewModel: ContactViewModel) {
     
     var nameError by remember { mutableStateOf(false) }
     var phoneError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
     var contactToDelete by remember { mutableStateOf<Contact?>(null) }
 
     // Estados para o Calendário (DatePicker)
@@ -157,7 +158,19 @@ fun ContactScreen(viewModel: ContactViewModel) {
                 item {
                     SectionCard(title = "Dados Pessoais", icon = Icons.Default.Person) {
                         ContactTextField(value = name, onValueChange = { name = it; nameError = it.isBlank() }, label = "Nome Completo *", isError = nameError)
-                        ContactTextField(value = email, onValueChange = { email = it }, label = "E-mail", keyboardType = KeyboardType.Email)
+                        ContactTextField(
+                            value = email,
+                            onValueChange = { 
+                                email = it
+                                emailError = it.isNotEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
+                            },
+                            label = "E-mail",
+                            keyboardType = KeyboardType.Email,
+                            isError = emailError
+                        )
+                        if (emailError) {
+                            Text("E-mail inválido", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 8.dp, bottom = 4.dp))
+                        }
                         OutlinedTextField(
                             value = phone,
                             onValueChange = { tfv ->
@@ -257,12 +270,13 @@ fun ContactScreen(viewModel: ContactViewModel) {
                                 cep = cep, street = street, neighborhood = neighborhood,
                                 number = number, city = city, state = state
                             )
-                            if (viewModel.validateContact(newContact)) {
+                            if (viewModel.validateContact(newContact) && !emailError) {
                                 viewModel.saveContact(newContact)
                             } else {
                                 nameError = name.isBlank()
                                 phoneError = phone.text.filter { it.isDigit() }.length < 10
-                                scope.launch { snackbarHostState.showSnackbar("⚠️ Nome e Telefone são obrigatórios!") }
+                                val errorMsg = if (emailError) "⚠️ Corrija o e-mail antes de salvar!" else "⚠️ Nome e Telefone são obrigatórios!"
+                                scope.launch { snackbarHostState.showSnackbar(errorMsg) }
                             }
                         },
                         modifier = Modifier.fillMaxWidth().height(56.dp).padding(vertical = 8.dp),
