@@ -66,6 +66,23 @@ class ContactViewModel : ViewModel() {
         }
     }
 
+    fun updateContact(id: Int, contact: Contact) {
+        viewModelScope.launch {
+            isSaving = true
+            saveSuccess = false
+            try {
+                repository.updateContact(id, contact)
+                loadContacts()
+                saveSuccess = true
+            } catch (e: Exception) {
+                Log.e("AgendaSmart", "Erro ao atualizar", e)
+                saveSuccess = false
+            } finally {
+                isSaving = false
+            }
+        }
+    }
+
     fun deleteContact(id: Int) {
         viewModelScope.launch {
             try {

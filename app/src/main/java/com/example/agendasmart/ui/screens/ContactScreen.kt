@@ -61,6 +61,7 @@ fun ContactScreen(viewModel: ContactViewModel) {
     var phoneError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var contactToDelete by remember { mutableStateOf<Contact?>(null) }
+    var editingContact by remember { mutableStateOf<Contact?>(null) }
 
     // Estados para o Calendário (DatePicker)
     var showDatePicker by remember { mutableStateOf(false) }
@@ -122,11 +123,12 @@ fun ContactScreen(viewModel: ContactViewModel) {
 
     LaunchedEffect(viewModel.saveSuccess) {
         if (viewModel.saveSuccess) {
-            snackbarHostState.showSnackbar("✓ Contato salvo com sucesso!")
+            snackbarHostState.showSnackbar("✓ Operação realizada com sucesso!")
             name = ""; email = ""; phone = TextFieldValue(""); birthDate = TextFieldValue("")
             cep = ""; street = ""; neighborhood = ""; number = ""; city = ""; state = ""
             viewModel.clearAddress()
-            nameError = false; phoneError = false
+            nameError = false; phoneError = false; emailError = false
+            editingContact = null
         }
     }
 
@@ -185,7 +187,7 @@ fun ContactScreen(viewModel: ContactViewModel) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true
                         )
-                        // Campo de Data de Nascimento (agora abre o calendário)
+                        // Campo de Data de Nascimento (calendário)
                         OutlinedTextField(
                             value = birthDate,
                             onValueChange = { }, // Não permite digitar
@@ -209,7 +211,7 @@ fun ContactScreen(viewModel: ContactViewModel) {
                                     TextButton(onClick = {
                                         val selectedDate = datePickerState.selectedDateMillis
                                         if (selectedDate != null) {
-                                            // Converte o tempo (milisegundos) para o formato DD/MM/AAAA
+
                                             val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                                             val dateString = formatter.format(Date(selectedDate))
                                             birthDate = TextFieldValue(text = dateString)
@@ -265,13 +267,18 @@ fun ContactScreen(viewModel: ContactViewModel) {
 
                     Button(
                         onClick = {
-                            val newContact = Contact(
+                            val contactData = Contact(
+                                id = editingContact?.id,
                                 name = name, email = email, phone = phone.text, birthDate = birthDate.text,
                                 cep = cep, street = street, neighborhood = neighborhood,
                                 number = number, city = city, state = state
                             )
-                            if (viewModel.validateContact(newContact) && !emailError) {
-                                viewModel.saveContact(newContact)
+                            if (viewModel.validateContact(contactData) && !emailError) {
+                                if (editingContact != null) {
+                                    editingContact?.id?.let { viewModel.updateContact(it, contactData) }
+                                } else {
+                                    viewModel.saveContact(contactData)
+                                }
                             } else {
                                 nameError = name.isBlank()
                                 phoneError = phone.text.filter { it.isDigit() }.length < 10
@@ -282,14 +289,31 @@ fun ContactScreen(viewModel: ContactViewModel) {
                         modifier = Modifier.fillMaxWidth().height(56.dp).padding(vertical = 8.dp),
                         enabled = !viewModel.isSaving,
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                        colors = ButtonDefaults.buttonColors(containerColor = if (editingContact != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.tertiary)
                     ) {
                         if (viewModel.isSaving) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onTertiary)
                         } else {
-                            Icon(Icons.Default.Done, null)
+                            Icon(if (editingContact != null) Icons.Default.Edit else Icons.Default.Done, null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Salvar Contato", style = MaterialTheme.typography.titleMedium)
+                            Text(if (editingContact != null) "Atualizar Contato" else "Salvar Contato", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+
+                    if (editingContact != null) {
+                        OutlinedButton(
+                            onClick = {
+                                editingContact = null
+                                name = ""; email = ""; phone = TextFieldValue(""); birthDate = TextFieldValue("")
+                                cep = ""; street = ""; neighborhood = ""; number = ""; city = ""; state = ""
+                                nameError = false; phoneError = false; emailError = false
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Close, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Cancelar Edição")
                         }
                     }
                 }
@@ -312,7 +336,24 @@ fun ContactScreen(viewModel: ContactViewModel) {
                 }
 
                 items(viewModel.contacts) { contact ->
-                    ContactItem(contact = contact, onDelete = { contactToDelete = contact })
+                    ContactItem(
+                        contact = contact, 
+                        onDelete = { contactToDelete = contact },
+                        onEdit = {
+                            editingContact = contact
+                            name = contact.name
+                            email = contact.email ?: ""
+                            phone = TextFieldValue(text = contact.phone, selection = TextRange(contact.phone.length))
+                            birthDate = TextFieldValue(text = contact.birthDate ?: "")
+                            cep = contact.cep ?: ""
+                            street = contact.street ?: ""
+                            neighborhood = contact.neighborhood ?: ""
+                            number = contact.number ?: ""
+                            city = contact.city ?: ""
+                            state = contact.state ?: ""
+                            nameError = false; phoneError = false; emailError = false
+                        }
+                    )
                 }
             }
         }

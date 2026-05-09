@@ -21,4 +21,8 @@ interface ContactService {
     // Remover um contato pelo ID
     @DELETE("contacts/{id}")
     suspend fun removeContact(@Path("id") id: Int)
+
+    // Atualizar um contato existente
+    @PUT("contacts/{id}")
+    suspend fun updateContact(@Path("id") id: Int, @Body contact: Contact): Contact
 }

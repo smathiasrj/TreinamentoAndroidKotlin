@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -84,7 +85,8 @@ fun SectionCard(
 @Composable
 fun ContactItem(
     contact: Contact,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     // Lista de cores premium para os avatares
     val avatarColors = listOf(
@@ -92,7 +94,7 @@ fun ContactItem(
         Color(0xFF3B82F6), Color(0xFF6366F1), Color(0xFF8B5CF6)
     )
     // Escolhe uma cor baseada na primeira letra do nome
-    val avatarColor = avatarColors[contact.name.first().code % avatarColors.size]
+    val avatarColor = avatarColors[if (contact.name.isNotEmpty()) contact.name.first().code % avatarColors.size else 0]
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,7 +116,7 @@ fun ContactItem(
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
                 Text(
-                    text = contact.name.take(1).uppercase(),
+                    text = if (contact.name.isNotEmpty()) contact.name.take(1).uppercase() else "?",
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -139,10 +141,18 @@ fun ContactItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            // Botão Editar
+            IconButton(onClick = onEdit) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.Edit,
+                    contentDescription = "Editar",
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                )
+            }
             // Botão Deletar
             IconButton(onClick = onDelete) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = androidx.compose.material.icons.Icons.Default.Delete,
                     contentDescription = "Deletar",
                     tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                 )

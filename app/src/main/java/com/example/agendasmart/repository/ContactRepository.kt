@@ -21,6 +21,11 @@ class ContactRepository {
         RetrofitClient.contactService.removeContact(id)
     }
 
+    // Função para atualizar um contato existente
+    suspend fun updateContact(id: Int, contact: Contact): Contact {
+        return RetrofitClient.contactService.updateContact(id, contact)
+    }
+
     // Função para buscar o endereço pelo CEP usando a API do ViaCEP
     suspend fun getAddress(cep: String): Address {
         return RetrofitClient.viaCEPService.getAddress(cep)
