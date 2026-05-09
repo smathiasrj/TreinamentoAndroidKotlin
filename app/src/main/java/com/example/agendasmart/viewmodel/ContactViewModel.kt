@@ -39,7 +39,8 @@ class ContactViewModel : ViewModel() {
             try {
                 networkError = null
                 val result = repository.getContacts()
-                contacts = result
+                // Ordenar alfabeticamente ignorando maiúsculas/minúsculas
+                contacts = result.sortedBy { it.name.lowercase() }
                 Log.d("AgendaSmart", "Sucesso: ${result.size} contatos")
             } catch (e: Exception) {
                 Log.e("AgendaSmart", "Erro de conexão", e)
