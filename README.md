@@ -6,7 +6,7 @@ Aplicativo Android completo para gerenciamento de contatos, desenvolvido com as 
 
 ## 🎓 Sobre a Atividade
 
-Este projeto foi desenvolvido como resposta ao **Exercício: CRUD + API (Aula 45)**, cujo objetivo é colocar em prática os conceitos de:
+Este projeto foi desenvolvido como resposta ao **Exercício: CRUD + API**, cujo objetivo é colocar em prática os conceitos de:
 
 - **CRUD completo** (Create, Read, Update, Delete) de contatos.
 - **Consumo de API REST** com Retrofit.
